@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>UMSZKI • Teremkereső</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;color:#f8fafc;background:#070b16;min-height:100vh}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;background:radial-gradient(circle at 10% 0%,#1d4ed855,transparent 32%),radial-gradient(circle at 90% 10%,#7c3aed55,transparent 30%)}
+.wrap{position:relative;max-width:1250px;margin:auto;padding:24px 18px 50px}
+.hero{padding:30px;border-radius:28px;background:linear-gradient(135deg,#102345ee,#251449ee);border:1px solid #33466b;box-shadow:0 25px 70px #0007}
+.logo{display:inline-block;padding:7px 11px;border-radius:999px;background:linear-gradient(90deg,#0ea5e9,#7c3aed);font-size:11px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+h1{font-size:clamp(38px,6vw,64px);margin:15px 0 7px;line-height:.95;letter-spacing:-.05em}
+.subtitle{color:#aebbd4;line-height:1.55}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+.search{flex:1;min-width:250px;padding:15px 18px;border-radius:15px;border:1px solid #344a70;background:#080f1ddd;color:#fff;outline:0;font-size:15px}
+.floorbar{display:flex;gap:8px;flex-wrap:wrap}
+.floorbar button,.close{border:1px solid #2d4163;background:#101b2e;color:#cbd5e1;border-radius:13px;padding:12px 15px;font-weight:800;cursor:pointer}
+.floorbar button.active,.floorbar button:hover{background:linear-gradient(135deg,#2563eb,#7c3aed);color:#fff;border-color:transparent}
+.info{display:flex;justify-content:space-between;color:#8fa0ba;font-size:13px;margin:23px 3px 10px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:13px}
+.card{position:relative;min-height:120px;padding:17px;border-radius:20px;border:1px solid #263754;background:linear-gradient(145deg,#121c2e,#0b1220);color:white;text-align:left;cursor:pointer;transition:.18s;overflow:hidden}
+.card:hover{transform:translateY(-4px);border-color:#60a5fa;box-shadow:0 15px 35px #2563eb35}
+.card:after{content:"›";position:absolute;right:14px;bottom:8px;color:#60a5fa;font-size:25px}
+.num{font-size:31px;font-weight:950;letter-spacing:-.04em}
+.name{margin-top:8px;color:#a5b4fc;font-size:13px;min-height:18px}
+.floor-tag{display:inline-block;margin-top:12px;padding:4px 7px;border-radius:999px;background:#172642;color:#7dd3fc;font-size:10px;font-weight:800}
+.empty{grid-column:1/-1;padding:45px;text-align:center;color:#7184a4}
+.modal{display:none;position:fixed;inset:0;background:#000c;z-index:20;align-items:center;justify-content:center;padding:18px}
+.modal.show{display:flex}
+.dialog{width:min(1320px,97vw);max-height:92vh;overflow:auto;background:#0c1423;border:1px solid #3a4f73;border-radius:26px;padding:24px;box-shadow:0 30px 100px #000}
+.dialog-top{display:flex;justify-content:space-between;align-items:flex-start;gap:15px}
+.close{width:42px;height:42px;padding:0;font-size:22px}
+.big{font-size:48px;font-weight:950;line-height:1}
+.roomname{color:#a5b4fc;margin-top:7px}
+.popup-title{margin-top:24px;font-size:22px;font-weight:950;letter-spacing:-.02em}
+.popup-sub{color:#8fa0ba;font-size:13px;margin:6px 0 15px}.schedule-legend{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 16px}.legend-pill{padding:7px 10px;border:1px solid #2b4165;border-radius:999px;background:#101b2e;color:#a9bad5;font-size:11px;font-weight:800}.today-row>th{color:#7dd3fc!important}.today-row>td{background:#0d1b2f}.now-cell{outline:2px solid #38bdf8;outline-offset:-2px;box-shadow:inset 0 0 25px #0ea5e922}.subject-name{font-size:13px!important;color:#f8fafc}.class-name{display:block;color:#93c5fd;font-size:11px;font-weight:800;line-height:1.25}.period-number{font-size:16px;color:#e2e8f0}.scroll-hint{display:none;color:#7184a4;font-size:11px;margin:8px 2px 0}@media(max-width:850px){.scroll-hint{display:block}.dialog{padding:16px;border-radius:20px}.big{font-size:38px}}
+.popup-table-wrap{overflow:auto;border:1px solid #2b4165;border-radius:18px;box-shadow:inset 0 1px #ffffff0a}
+.popup-table{width:100%;min-width:640px;border-collapse:collapse}
+.popup-table th,.popup-table td{padding:12px 13px;border-bottom:1px solid #1d2b44;text-align:left}
+.popup-table th{background:#09111e;color:#7184a4;font-size:11px;text-transform:uppercase}
+.popup-table td{color:#dbe5f5}
+.horizontal-schedule{min-width:1180px;table-layout:fixed;background:#0a1220}.horizontal-schedule th,.horizontal-schedule td{text-align:center;vertical-align:middle;padding:10px 6px}.horizontal-schedule thead th:first-child,.horizontal-schedule tbody th{position:sticky;left:0;z-index:2;background:#09111e;min-width:105px}.horizontal-schedule thead th{min-width:95px}.horizontal-schedule thead small{display:block;font-size:9px;color:#7184a4;margin-top:4px;white-space:nowrap}.horizontal-schedule td b{display:block;font-size:12px;margin-bottom:6px}.horizontal-schedule .group-badge{white-space:normal;font-size:10px;padding:4px 5px}.horizontal-schedule .free{background:#0a1220}
+.group-badge{display:inline-block;padding:5px 8px;border-radius:999px;background:#172b50;color:#93c5fd;font-weight:800;font-size:12px}
+.teacher{color:#c4b5fd!important}
+.no-data{padding:18px;border:1px dashed #33466b;border-radius:16px;color:#8fa0ba}
+footer{margin-top:28px;text-align:center;color:#5f708d;font-size:11px}
+@media(max-width:650px){.wrap{padding:12px}.hero{padding:22px}.grid{grid-template-columns:repeat(2,1fr);gap:9px}.card{min-height:108px;padding:14px}.num{font-size:26px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<section class="hero">
+  <span class="logo">🏫 UMSZKI • Teremkereső</span>
+  <h1>Hol van az órám?</h1>
+  <div class="subtitle">Budapesti Műszaki SZC Újpesti Két Tanítási Nyelvű Műszaki Technikum</div>
+  <div class="toolbar">
+    <input id="search" class="search" placeholder="🔎 Teremszám, tanár vagy helyiség…">
+    <div id="floorbar" class="floorbar"></div>
+  </div>
+</section>
+<div class="info"><span id="count"></span><span>💡 Kattints a teremre az órarendhez</span></div>
+<div id="grid" class="grid"></div>
+<footer>Udvary Balázs órarendje • A 2-es terem popupja ezt a feltöltött órarendet mutatja.</footer>
+</div>
+
+<div id="modal" class="modal">
+  <div class="dialog">
+    <div class="dialog-top">
+      <div><div id="big" class="big"></div><div id="roomname" class="roomname"></div></div>
+      <button class="close" onclick="closeModal()">×</button>
+    </div>
+    <div id="popupContent"></div>
+  </div>
+</div>
+
+<script>
+const rooms=[{"n": "2", "name": "Udvary Balázs", "floor": 0}, {"n": "4", "name": "", "floor": 0}, {"n": "5", "name": "Kluka Norbert", "floor": 0}, {"n": "9", "name": "Bézi Barbara", "floor": 0}, {"n": "10", "name": "Elektronika", "floor": 0}, {"n": "11", "name": "Barta Zoltán", "floor": 0}, {"n": "14", "name": "Karikó-Tóth Tamás", "floor": 0}, {"n": "16", "name": "Kiss Csaba", "floor": 0}, {"n": "17", "name": "Varga Artúr", "floor": 0}, {"n": "30", "name": "Vidra András", "floor": 0}, {"n": "31", "name": "Kriston Aranka", "floor": 0}, {"n": "33", "name": "Schmieder László", "floor": 0}, {"n": "34", "name": "Nagy Ferenc", "floor": 0}, {"n": "39", "name": "Gépész", "floor": 0}, {"n": "44", "name": "Juhász Róbert", "floor": 0}, {"n": "46", "name": "NYÁK Labor", "floor": 0}, {"n": "47", "name": "Fresz Péter", "floor": 0}, {"n": "48", "name": "Varga László", "floor": 0}, {"n": "52", "name": "Vadai Tamás", "floor": 0}, {"n": "57", "name": "Zabari Tibor", "floor": 0}, {"n": "58", "name": "", "floor": 0}, {"n": "59", "name": "Schilling Ferenc", "floor": 0}, {"n": "60", "name": "", "floor": 0}, {"n": "60E", "name": "", "floor": 0}, {"n": "63", "name": "Kriston Dávid", "floor": 0}, {"n": "113", "name": "Tanácsterem", "floor": 1}, {"n": "117", "name": "Seyfried Katalin", "floor": 1}, {"n": "119", "name": "Mackovic Andrea", "floor": 1}, {"n": "122", "name": "Schuch-Takács Tímea", "floor": 1}, {"n": "124", "name": "Tóth Irén", "floor": 1}, {"n": "126", "name": "Nagy Annamária", "floor": 1}, {"n": "127", "name": "Bakai Andrea", "floor": 1}, {"n": "129", "name": "Pócsik Fruzsina", "floor": 1}, {"n": "130", "name": "Kovács János", "floor": 1}, {"n": "131", "name": "Biró Ildikó", "floor": 1}, {"n": "136", "name": "Szabó Zsuzsanna", "floor": 1}, {"n": "137", "name": "Varga László", "floor": 1}, {"n": "138", "name": "Demeter Alexander", "floor": 1}, {"n": "139", "name": "Horváth Zoltán", "floor": 1}, {"n": "143", "name": "Pneumatika", "floor": 1}, {"n": "147", "name": "Kudron Csaba", "floor": 1}, {"n": "148", "name": "Horváth Zoltán", "floor": 1}, {"n": "149", "name": "", "floor": 1}, {"n": "181", "name": "Bodahelyi Éva", "floor": 1}, {"n": "182", "name": "Hegyiné Z. Szilvia", "floor": 1}, {"n": "183", "name": "", "floor": 1}, {"n": "184", "name": "Nagy Krisztina", "floor": 1}, {"n": "186", "name": "Barta Ilona", "floor": 1}, {"n": "187", "name": "", "floor": 1}, {"n": "191", "name": "Gulyás Ildikó", "floor": 1}, {"n": "194", "name": "Karácsony Éva", "floor": 1}, {"n": "195", "name": "Kovács Ferenc", "floor": 1}, {"n": "196", "name": "Soósné V. Lia", "floor": 1}, {"n": "201", "name": "Adyné K. Enikő", "floor": 2}, {"n": "203", "name": "Buczkó Orsolya", "floor": 2}, {"n": "204", "name": "Szöllösi Brigitta", "floor": 2}, {"n": "208", "name": "Végh Károly", "floor": 2}, {"n": "210", "name": "Bodó Antal", "floor": 2}, {"n": "211", "name": "Braun Éva", "floor": 2}, {"n": "212", "name": "Kormos Gabriella", "floor": 2}, {"n": "214", "name": "Molnár Eszter", "floor": 2}, {"n": "218", "name": "Widder László", "floor": 2}, {"n": "219", "name": "Tikász András", "floor": 2}, {"n": "221", "name": "Némethné P. Stefánia", "floor": 2}, {"n": "222", "name": "Gera Ildikó", "floor": 2}, {"n": "223", "name": "Zachár Judit", "floor": 2}, {"n": "233", "name": "Prófusz Magdolna", "floor": 2}, {"n": "235", "name": "Lakatos Tibor", "floor": 2}, {"n": "236", "name": "Drofti Endre", "floor": 2}, {"n": "237", "name": "Kollár Zsófia", "floor": 2}, {"n": "240", "name": "Erdei Éva", "floor": 2}, {"n": "254", "name": "Gépész", "floor": 2}, {"n": "255", "name": "Gépész", "floor": 2}, {"n": "256", "name": "Informatika", "floor": 2}, {"n": "265", "name": "", "floor": 2}, {"n": "266", "name": "Informatika", "floor": 2}, {"n": "302", "name": "Nánási Gabriella", "floor": 3}, {"n": "303", "name": "Batóné S. Ágnes", "floor": 3}, {"n": "305", "name": "Baranné H. Krisztina", "floor": 3}, {"n": "306", "name": "Keresztfalvi Katalin", "floor": 3}, {"n": "Könyvtár", "name": "Könyvtár", "floor": 0}, {"n": "Testnevelés 1", "name": "Tornaterem", "floor": 0}, {"n": "Testnevelés 2", "name": "Tornaterem", "floor": 0}, {"n": "Testnevelés 3", "name": "Tornaterem", "floor": 0}, {"n": "Testnevelés 4", "name": "Tornaterem", "floor": 0}];
+const roomSchedules={"2": [{"day": "Hétfő", "lesson": "2. óra", "time": "8:40–9:25", "subject": "IKT1", "class": "10.D • k2"}, {"day": "Hétfő", "lesson": "3. óra", "time": "9:35–10:20", "subject": "Progal", "class": "10.D • k2"}, {"day": "Hétfő", "lesson": "4. óra", "time": "10:30–11:15", "subject": "Progal", "class": "10.D • k2"}, {"day": "Hétfő", "lesson": "5. óra", "time": "11:25–12:10", "subject": "IKT1", "class": "10.D • k1"}, {"day": "Kedd", "lesson": "2. óra", "time": "8:40–9:25", "subject": "SzéFgy", "class": "12.C_IRAÜ"}, {"day": "Kedd", "lesson": "3. óra", "time": "9:35–10:20", "subject": "SzéFgy", "class": "12.C_IRAÜ"}, {"day": "Kedd", "lesson": "4. óra", "time": "10:30–11:15", "subject": "SzéFgy", "class": "13.C/13.I • gy1/k1"}, {"day": "Kedd", "lesson": "5. óra", "time": "11:25–12:10", "subject": "SzéFgy", "class": "13.C/13.I • gy1/k1"}, {"day": "Kedd", "lesson": "6. óra", "time": "12:30–13:15", "subject": "Hállgy", "class": "13.C/13.I • gy1/k1"}, {"day": "Szerda", "lesson": "2. óra", "time": "8:40–9:25", "subject": "IKT1", "class": "10.D • k2"}, {"day": "Szerda", "lesson": "3. óra", "time": "9:35–10:20", "subject": "SzéFgy", "class": "12.D_IRAÜ"}, {"day": "Szerda", "lesson": "4. óra", "time": "10:30–11:15", "subject": "SzéFgy", "class": "12.D_IRAÜ"}, {"day": "Szerda", "lesson": "5. óra", "time": "11:25–12:10", "subject": "IKT1", "class": "10.D • k1"}, {"day": "Szerda", "lesson": "7. óra", "time": "13:25–14:10", "subject": "Hállgy", "class": "13.C • gy2"}, {"day": "Csütörtök", "lesson": "3. óra", "time": "9:35–10:20", "subject": "Progal", "class": "10.D • k1"}, {"day": "Csütörtök", "lesson": "4. óra", "time": "10:30–11:15", "subject": "DiKu", "class": "9.C • k1"}, {"day": "Csütörtök", "lesson": "5. óra", "time": "11:25–12:10", "subject": "DiKu", "class": "9/KnyC • k2"}, {"day": "Csütörtök", "lesson": "6. óra", "time": "12:30–13:15", "subject": "DiKu", "class": "9/KnyC • k1"}, {"day": "Péntek", "lesson": "1. óra", "time": "7:45–8:30", "subject": "SzéFgy", "class": "12.D_IRAÜ"}, {"day": "Péntek", "lesson": "2. óra", "time": "8:40–9:25", "subject": "SzéFgy", "class": "12.I_IRAÜ"}, {"day": "Péntek", "lesson": "3. óra", "time": "9:35–10:20", "subject": "SzéFgy", "class": "12.I_IRAÜ"}, {"day": "Péntek", "lesson": "4. óra", "time": "10:30–11:15", "subject": "SzéFgy", "class": "12.I_IRAÜ"}, {"day": "Péntek", "lesson": "5. óra", "time": "11:25–12:10", "subject": "Hál", "class": "12.C_IRAÜ"}, {"day": "Péntek", "lesson": "7. óra", "time": "13:25–14:10", "subject": "DiKu", "class": "9.F • k1"}]};
+let floor='all';
+
+function floorName(f) {
+  return f===0 ? 'Földszint' : f+'. emelet';
+}
+function renderFloors() {
+  const el=document.getElementById('floorbar');
+  const floors=[['all','Minden szint'],[0,'Földszint'],[1,'1. emelet'],[2,'2. emelet'],[3,'3. emelet']];
+  el.innerHTML=floors.map(x=>`<button class="${String(floor)===String(x[0])?'active':''}" onclick="setFloor('${x[0]}')">${x[1]}</button>`).join('');
+}
+function setFloor(f) {
+  floor=f; renderFloors(); render();
+}
+function render() {
+  const q=document.getElementById('search').value.toLowerCase().trim();
+  const list=rooms.filter(r=>(floor==='all'||String(r.floor)===String(floor)) &&
+    (`${r.n} ${r.name}`.toLowerCase().includes(q)));
+  document.getElementById('count').textContent=list.length+' helyiség';
+  document.getElementById('grid').innerHTML=list.length ? list.map(r=>`
+    <button class="card" onclick="openRoom('${encodeURIComponent(r.n)}')">
+      <div class="num">${escapeHtml(r.n)}</div>
+      <div class="name">${escapeHtml(r.name||'Helyiség')}</div>
+      <span class="floor-tag">${floorName(r.floor)}</span>
+    </button>`).join('') : '<div class="empty">Nincs találat ezen a szinten.</div>';
+}
+function escapeHtml(v) {
+  return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function openRoom(encoded) {
+  const n=decodeURIComponent(encoded);
+  const room=rooms.find(r=>r.n===n);
+  document.getElementById('big').textContent=n;
+  document.getElementById('roomname').textContent=room ? (room.name||'Helyiség') : 'Helyiség';
+
+  const data=roomSchedules[n] || [];
+  let content='';
+  if(n==='2') {
+    content += `<div class="popup-title">📅 Udvary Balázs — órarend</div>`;
+    content += `<div class="popup-sub">A feltöltött órarend alapján itt látható, melyik osztállyal/csoporttal van órája.</div>`;
+  }
+  if(data.length) {
+    const days=['Hétfő','Kedd','Szerda','Csütörtök','Péntek'];
+    const periods=[0,1,2,3,4,5,6,7,8,9,10];
+    const times=['7:00–7:40','7:45–8:30','8:40–9:25','9:35–10:20','10:30–11:15','11:25–12:10','12:30–13:15','13:25–14:10','14:15–15:00','15:05–15:50','15:55–16:40'];
+    const lessonNo=x=>parseInt(x.lesson,10);
+    const jsDays=['Vasárnap','Hétfő','Kedd','Szerda','Csütörtök','Péntek','Szombat'];
+    const today=jsDays[new Date().getDay()];
+    const mins=t=>{const [h,m]=t.split(':').map(Number);return h*60+m};
+    const now=new Date(); const nowMin=now.getHours()*60+now.getMinutes();
+    content += `<div class="schedule-legend"><span class="legend-pill">📅 Heti órarend</span><span class="legend-pill">🔵 Kék keret = jelenlegi óra</span><span class="legend-pill">✨ Kiemelés = mai nap</span></div><div class="popup-table-wrap"><table class="popup-table horizontal-schedule">
+      <thead><tr><th>Nap</th>${periods.map((p,i)=>`<th><b class="period-number">${p}.</b><small>${times[i]}</small></th>`).join('')}</tr></thead>
+      <tbody>${days.map(day=>`<tr class="${day===today?'today-row':''}"><th>${day}</th>${periods.map((p,i)=>{
+        const x=data.find(v=>v.day===day && lessonNo(v)===p);
+        const [from,to]=times[i].split('–'); const isNow=day===today && nowMin>=mins(from) && nowMin<=mins(to);
+        return x ? `<td class="${isNow?'now-cell':''}"><b class="subject-name">${escapeHtml(x.subject)}</b><span class="class-name">${escapeHtml(x.class)}</span></td>` : `<td class="free ${isNow?'now-cell':''}"></td>`;
+      }).join('')}</tr>`).join('')}</tbody>
+    </table></div><div class="scroll-hint">← Az órarend oldalra görgethető →</div>`;
+  } else {
+    content += `<div class="no-data">Ehhez a teremhez még nincs feltöltve órarend.</div>`;
+  }
+  document.getElementById('popupContent').innerHTML=content;
+  document.getElementById('modal').classList.add('show');
+}
+function closeModal() {
+  document.getElementById('modal').classList.remove('show');
+}
+document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal()});
+document.getElementById('search').addEventListener('input',render);
+renderFloors(); render();
+</script>
+</body>
+</html>
