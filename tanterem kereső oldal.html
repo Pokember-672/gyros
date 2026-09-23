@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="hun">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Iskolai Teremkereső</title>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+
+body{
+    font-family:Arial,sans-serif;
+    background:#f1f5f9;
+    color:#1e293b;
+}
+
+header{
+    background:linear-gradient(135deg,#2563eb,#1d4ed8);
+    color:white;
+    padding:35px 20px;
+    text-align:center;
+}
+
+header h1{
+    font-size:36px;
+    margin-bottom:10px;
+}
+
+header p{
+    font-size:17px;
+}
+
+.kereso{
+    max-width:700px;
+    margin:25px auto;
+    padding:0 20px;
+}
+
+.kereso input{
+    width:100%;
+    padding:16px 20px;
+    border:0;
+    border-radius:12px;
+    font-size:17px;
+    outline:none;
+    box-shadow:0 4px 15px #0002;
+}
+
+.tartalom{
+    max-width:1100px;
+    margin:30px auto;
+    padding:0 20px;
+}
+
+.statisztika{
+    background:white;
+    padding:20px;
+    border-radius:12px;
+    margin-bottom:25px;
+    box-shadow:0 3px 10px #0001;
+}
+
+.statisztika strong{
+    color:#2563eb;
+}
+
+.termek{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+    gap:20px;
+}
+
+.terem{
+    background:white;
+    border-radius:14px;
+    padding:22px;
+    box-shadow:0 4px 12px #0001;
+    border-left:5px solid #2563eb;
+    transition:.2s;
+}
+
+.terem:hover{
+    transform:translateY(-3px);
+    box-shadow:0 8px 20px #0002;
+}
+
+.terem.specialis{
+    border-left-color:#9333ea;
+    background:#faf5ff;
+}
+
+.terem h2{
+    color:#1d4ed8;
+    margin-bottom:8px;
+}
+
+.terem.specialis h2{
+    color:#7e22ce;
+}
+
+.terem h3{
+    color:#475569;
+    font-size:16px;
+    margin-bottom:15px;
+}
+
+.adat{
+    margin:9px 0;
+    line-height:1.5;
+}
+
+.adat span{
+    font-weight:bold;
+}
+
+.cimke{
+    display:inline-block;
+    background:#dbeafe;
+    color:#1d4ed8;
+    padding:5px 10px;
+    border-radius:20px;
+    font-size:13px;
+    margin-top:10px;
+}
+
+.specialis .cimke{
+    background:#e9d5ff;
+    color:#7e22ce;
+}
+
+.nincs{
+    text-align:center;
+    background:white;
+    padding:40px;
+    border-radius:12px;
+    display:none;
+}
+
+footer{
+    margin-top:50px;
+    background:#1e293b;
+    color:white;
+    text-align:center;
+    padding:25px;
+}
+
+@media(max-width:600px){
+    header h1{font-size:28px}
+    .termek{grid-template-columns:1fr}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>🏫 Iskolai Teremkereső</h1>
+    <p>Találd meg gyorsan, hogy hol található az adott terem!</p>
+</header>
+
+<div class="kereso">
+    <input
+        type="text"
+        id="kereso"
+        placeholder="🔎 Keress teremszámra, névre vagy terem típusára..."
+    >
+</div>
+
+<main class="tartalom">
+
+    <div class="statisztika">
+        Összes terem: <strong>306+</strong> |
+        Speciális informatikai terem: <strong>10</strong>
+    </div>
+
+    <div id="termek" class="termek"></div>
+
+    <div id="nincs" class="nincs">
+        <h2>😕 Nincs találat</h2>
+        <p>Próbálj meg másik teremszámot vagy nevet keresni.</p>
+    </div>
+
+</main>
+
+<footer>
+    <p>© 2026 Iskolai Teremkereső</p>
+</footer>
+
+<script>
+
+/* =====================================================
+   TERMEK NEVEI
+===================================================== */
+
+const teremNevek = {
+
+    2:"Udvary Balázs",
+    5:"Kluka Norbert",
+    9:"Bézi Barbara",
+    10:"Elektronika",
+    11:"Barta Zoltán",
+    14:"Karikó-Tóth Tamás",
+    16:"Kiss Csaba",
+    17:"Varga Artúr",
+
+    30:"Vidra András",
+    31:"Kriston Aranka",
+    33:"Schmieder László",
+    34:"Nagy Ferenc",
+    39:"Gépész",
+    44:"Juhász Róbert",
+    46:"NYÁK Labor",
+    47:"Fresz Péter",
+    48:"Varga László",
+
+    52:"Vadai Tamás",
+    57:"Zabari Tibor",
+    59:"Schilling Ferenc",
+    63:"Kriston Dávid",
+
+    113:"Tanácsterem",
+    117:"Seyfried Katalin",
+    119:"Mackovic Andrea",
+    122:"Schuch-Takács Tímea",
+    124:"Tóth Irén",
+    126:"Nagy Annamária",
+    127:"Bakai Andrea",
+    129:"Pócsik Fruzsina",
+    130:"Kovács János",
+    131:"Biró Ildikó",
+    136:"Szabó Zsuzsanna",
+    137:"Varga László",
+    138:"Demeter Alexander",
+    139:"Horváth Zoltán",
+    143:"Pneumatika",
+    147:"Kudron Csaba",
+    148:"Horváth Zoltán",
+
+    181:"Bodahelyi Éva",
+    182:"Hegyiné Z. Szilvia",
+    184:"Nagy Krisztina",
+    186:"Barta Ilona",
+
+    191:"Gulyás Ildikó",
+    194:"Karácsony Éva",
+    195:"Kovács Ferenc",
+    196:"Soósné V. Lia",
+
+    201:"Adyné K. Enikő",
+    203:"Buczkó Orsolya",
+    204:"Szöllösi Brigitta",
+    208:"Végh Károly",
+    210:"Bodó Antal",
+    211:"Braun Éva",
+    212:"Kormos Gabriella",
+    214:"Molnár Eszter",
+    218:"Widder László",
+    219:"Tikász András",
+    221:"Némethné P. Stefánia",
+    222:"Gera Ildikó",
+    223:"Zachár Judit",
+
+    233:"Prófusz Magdolna",
+    235:"Lakatos Tibor",
+    236:"Drofti Endre",
+    237:"Kollár Zsófia",
+    240:"Erdei Éva",
+
+    254:"Gépész",
+    255:"Gépész",
+    256:"Informatika",
+    265:"",
+    266:"Informatika",
+
+    302:"Nánási Gabriella",
+    303:"Batóné S. Ágnes",
+    305:"Baranné H. Krisztina",
+    306:"Keresztfalvi Katalin"
+};
+
+
+/* =====================================================
+   KÜLÖN HELYISÉGEK
+===================================================== */
+
+const kulonTermek = {
+    "60E":"60E",
+    "Könyvtár":"Könyvtár",
+    "Testnevelés 1":"Testnevelés 1",
+    "Testnevelés 2":"Testnevelés 2",
+    "Testnevelés 3":"Testnevelés 3",
+    "Testnevelés 4":"Testnevelés 4",
+    "Duális":"Duális"
+};
+
+
+/* =====================================================
+   10 SPECIÁLIS INFORMATIKAI TEREM
+===================================================== */
+
+const specialisTermek = {
+
+    50:[
+        "Hálózati Labor",
+        "Hálózatok és rendszergazdai feladatok",
+        "Földszint, A szárny",
+        "Routerek, switchek, hálózati kábelek"
+    ],
+
+    75:[
+        "Programozó Labor",
+        "Programozás és szoftverfejlesztés",
+        "Földszint, B szárny",
+        "Számítógépek és fejlesztői környezetek"
+    ],
+
+    100:[
+        "Szerverlabor",
+        "Szerverek és informatikai rendszerek",
+        "1. emelet",
+        "Szerverek és hálózati eszközök"
+    ],
+
+    125:[
+        "Kiberbiztonsági Labor",
+        "Kiberbiztonság és etikus hackelés",
+        "1. emelet",
+        "Számítógépek és biztonsági labor"
+    ],
+
+    150:[
+        "Robotika Labor",
+        "Robotika és automatizálás",
+        "1. emelet",
+        "Robotok, Arduino és szenzorok"
+    ],
+
+    175:[
+        "Elektronikai Labor",
+        "Elektronika és digitális technika",
+        "2. emelet",
+        "Mérőműszerek és áramköri elemek"
+    ],
+
+    200:[
+        "Adatbázis Labor",
+        "Adatbázis-kezelés és SQL",
+        "2. emelet",
+        "Számítógépek és adatbázis-szerver"
+    ],
+
+    225:[
+        "Webfejlesztő Labor",
+        "Weboldalak és webalkalmazások fejlesztése",
+        "2. emelet",
+        "Számítógépek és fejlesztői környezet"
+    ],
+
+    250:[
+        "3D és Grafikai Labor",
+        "3D modellezés és számítógépes grafika",
+        "3. emelet",
+        "Erős számítógépek és grafikus táblák"
+    ],
+
+    275:[
+        "AI és Gépi Tanulás Labor",
+        "Mesterséges intelligencia és gépi tanulás",
+        "3. emelet",
+        "Nagy teljesítményű számítógépek"
+    ]
+
+};
+
+
+/* =====================================================
+   TEREM LÉTREHOZÁSA
+===================================================== */
+
+function teremLetrehozasa(szam){
+
+    const specialis=specialisTermek[szam];
+    const nev=teremNevek[szam] || "";
+    const emelet=Math.ceil(szam/100);
+
+    if(specialis){
+
+        return `
+        <div class="terem specialis"
+             data-kereses="${szam} ${specialis.join(" ")}">
+
+            <h2>💻 ${szam}. terem</h2>
+            <h3>${specialis[0]}</h3>
+
+            <div class="adat">
+                <span>📚 Használat:</span>
+                ${specialis[1]}
+            </div>
+
+            <div class="adat">
+                <span>📍 Hely:</span>
+                ${specialis[2]}
+            </div>
+
+            <div class="adat">
+                <span>🚪 Útvonal:</span>
+                A főbejárattól az emeletre, majd a teremszámot követve.
+            </div>
+
+            <div class="adat">
+                <span>🖥️ Felszerelés:</span>
+                ${specialis[3]}
+            </div>
+
+            <span class="cimke">
+                ⭐ Speciális informatikai terem
+            </span>
+
+        </div>`;
+    }
+
+    return `
+    <div class="terem"
+         data-kereses="${szam} ${nev}">
+
+        <h2>🚪 ${szam}. terem</h2>
+
+        <h3>${nev || "Nincs megadott név"}</h3>
+
+        <div class="adat">
+            <span>📍 Hely:</span>
+            ${emelet}. emelet
+        </div>
+
+        <div class="adat">
+            <span>📚 Használat:</span>
+            ${nev || "Általános oktatási terem"}
+        </div>
+
+        <div class="adat">
+            <span>🚶 Útvonal:</span>
+            A főbejárattól az emeletre, majd a teremszámokat követve.
+        </div>
+
+        <div class="adat">
+            <span>🖥️ Felszerelés:</span>
+            Tábla, projektor és alapvető tantermi felszerelés
+        </div>
+
+        <span class="cimke">
+            📖 Tanterem
+        </span>
+
+    </div>`;
+}
+
+
+/* =====================================================
+   TERMEK LÉTREHOZÁSA
+===================================================== */
+
+const termekContainer=document.getElementById("termek");
+
+/* 1-306 */
+for(let i=1;i<=306;i++){
+    termekContainer.innerHTML+=teremLetrehozasa(i);
+}
+
+
+/* =====================================================
+   KÜLÖN HELYISÉGEK
+===================================================== */
+
+Object.keys(kulonTermek).forEach(nev=>{
+
+    termekContainer.innerHTML+=`
+
+    <div class="terem"
+         data-kereses="${nev}">
+
+        <h2>🏫 ${nev}</h2>
+
+        <h3>${nev}</h3>
+
+        <div class="adat">
+            <span>📍 Hely:</span>
+            Iskolai helyiség
+        </div>
+
+        <div class="adat">
+            <span>📚 Használat:</span>
+            ${nev}
+        </div>
+
+        <div class="adat">
+            <span>🚪 Útvonal:</span>
+            A főbejárattól az épületen belüli jelzéseket követve.
+        </div>
+
+    </div>
+
+    `;
+
+});
+
+
+/* =====================================================
+   KERESÉS
+===================================================== */
+
+document.getElementById("kereso").addEventListener("input",function(){
+
+    const keresett=this.value.toLowerCase().trim();
+    const termek=document.querySelectorAll(".terem");
+
+    let talalat=0;
+
+    termek.forEach(terem=>{
+
+        const szoveg=terem.dataset.kereses.toLowerCase();
+
+        if(szoveg.includes(keresett)){
+            terem.style.display="";
+            talalat++;
+        }else{
+            terem.style.display="none";
+        }
+
+    });
+
+    document.getElementById("nincs").style.display=
+        talalat===0 ? "block" : "none";
+
+});
+
+</script>
+
+</body>
+</html>
